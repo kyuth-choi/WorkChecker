@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- 합쳐지고 최소화된 최신 CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <title>woking</title>
+</head>
+<body>
+<div style="width: 900px; margin-left: 20px; margin-bottom: 100px">
+    <a href="/" style="float:right">로그아웃</a>
+    <h1 style="text-align: center;">근태 계산기 </h1>
+    <div>
+        <form id="newWorkList" action="/workList" method="get">
+            <select id="year" class="form-control" style="width: 10%;display: inline;" onchange="changeDate()">
+                <option value="2022">2022</option>
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+            </select>
+            <select id="month" class="form-control" style="width: 10%;display: inline;" onchange="changeDate()">
+                <option th:each="num : ${#numbers.sequence(1,12)}" th:text="${#numbers.formatInteger(num, 2)}"
+                        th:value="${#numbers.formatInteger(num, 2)}"></option>
+            </select>
+
+            <input type="hidden" id="workingMonth" name="workingMonth" th:value="${workingMonth}">
+        </form>
+    </div>
+    <table style="margin-top: 20px" class="table table-bordered">
+        <colgroup>
+            <col width="12%"/>
+            <col width="20%"/>
+            <col width="20%"/>
+            <col width="11%"/>
+            <col width="11%"/>
+            <col width="12%"/>
+            <col width="14%"/>
+        </colgroup>
+        <thead>
+        <tr>
+            <th>근무일자</th>
+            <th>출근시각</th>
+            <th>퇴근시각</th>
+            <th>정상근무시간</th>
+            <th>하루근무시간</th>
+            <th>정상근무시간</br>-하루근무시간</th>
+            <th>비고</th>
+        </tr>
+        </thead>
+        <th:block th:if="${workingInfos}">
+            <tbody>
+            <tr th:each="workingInfo : ${workingInfos}">
+                <td th:text="${#temporals.createDate(workingInfo.carDate, 'yyyyMMdd')}"></td>
+                <td th:text="${workingInfo.startDate}"></td>
+                <td th:text="${workingInfo.endDate}"></td>
+                <td th:text="${workingInfo.diffTime}"></td>
+                <td th:text="${workingInfo.originTime}"></td>
+                <td th:text="${workingInfo.minusTime+workingInfo.addTime}"></td>
+                <td th:text="${workingInfo.note}"></td>
+            </tr>
+            <tr th:if="${#lists.size(workingInfos)} > 0">
+                <td colspan="7"></td>
+            </tr>
+            <tr th:if="${#lists.size(workingInfos)} > 0">
+                <td></td>
+                <td></td>
+                <td>합계</td>
+                <td th:text="${totalWorkingTime}"></td>
+                <td th:text="${totalDiffTime}"></td>
+                <td th:text="${totalMinusTime}" th:if="${totalMinusTime} < 0" style="color: red"></td>
+                <td th:text="${totalMinusTime}" th:unless="${totalMinusTime} < 0"></td>
+                <td></td>
+            </tr>
+            <tr th:unless="${#lists.size(workingInfos)} > 0">
+                <td colspan="7" style="text-align: center;">데이터가 없습니다.</td>
+            </tr>
+        </th:block>
+        <tr th:unless="${workingInfos}">
+            <td colspan="7" style="text-align: center;" th:if="${errorMessage}" th:text="${errorMessage}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <br/>
+    <form action="/excelDown" th:if="${workingInfos}">
+        <input type="hidden" name="workingMonth" th:value="${workingMonth}">
+        <button class="btn btn-lg btn-primary btn-block" style="float:right; width: 13%" type="submit">엑셀 다운</button>
+    </form>
+</div>
+</body>
+<script th:inline="javascript">
+    let workingMonth = [[${workingMonth}]];
+    document.getElementById("year").value = workingMonth.substring(0, 4)
+    document.getElementById("month").value = workingMonth.substring(4, 6)
+
+    const changeDate = function () {
+        document.getElementById("workingMonth").value = document.getElementById("year").value + "" + document.getElementById("month").value
+        document.getElementById("newWorkList").submit();
+    }
+</script>
+<style>
+    table {
+        width: 100%;
+        border: 1px solid #444444;
+    }
+
+    th, td {
+        border: 1px solid #444444;
+    }
+</style>
+
+</html>
