@@ -1,9 +1,13 @@
 spring:
   thymeleaf:
     cache: false
+
   profiles:
     active:
       - loglocal
+  mvc:
+    static-path-pattern: /static/**
+
 
 server:
   port: 80

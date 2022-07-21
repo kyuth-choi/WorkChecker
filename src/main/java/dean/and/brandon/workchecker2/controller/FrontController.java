@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -23,11 +24,16 @@ public class FrontController {
 
     @GetMapping("/")
     public ModelAndView loginForm(
+            HttpServletRequest request,
             HttpServletResponse response
     ) {
-        Cookie cookie = new Cookie("sessionId", null);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                cookie.setMaxAge(0);
+                response.addCookie(cookie);
+            }
+        }
         return new ModelAndView("login");
     }
 
@@ -37,59 +43,61 @@ public class FrontController {
             @RequestParam(name = "username") String username,
             @RequestParam(name = "password") String password
     ) {
+        ModelAndView modelAndView = new ModelAndView();
         try {
             String sessionId = workCheckerService.getLogin(username, password);
-            log.info("Login Success : {}", username);
-            response.addCookie(new Cookie("sessionId", sessionId));
             response.addCookie(new Cookie("username", username));
-            ModelAndView modelAndView = new ModelAndView("loginSuccess");
-            modelAndView.addObject("username", username);
-            return modelAndView;
+            response.addCookie(new Cookie("sessionId", sessionId));
+            modelAndView.setViewName("loginSuccess");
         } catch (Exception e) {
-            log.info("Login Fail : {}", username);
-            ModelAndView modelAndView = new ModelAndView("login");
+            log.error("Login Fail : " + username, e);
+            modelAndView.setViewName("login");
             modelAndView.addObject("loginError", e.getMessage());
-            return modelAndView;
         }
+        return modelAndView;
     }
 
     @RequestMapping(value = "/workList", method = RequestMethod.GET)
     public ModelAndView workData(
-            @CookieValue(value = "sessionId", required = false) Cookie sessionInfo,
+            @CookieValue(value = "sessionId", required = false) String sessionId,
+            @CookieValue(value = "username", required = false) String username,
             @RequestParam(name = "workingMonth", required = false) String workingMonth) {
 
-        if (sessionInfo == null || "".equals(sessionInfo.getValue())) {
-            return new ModelAndView("login");
-        } else {
-            String sessionId = sessionInfo.getValue();
-            long totalWorkingTime = 0;
-            long totalMinusTime = 0;
-            long totalDiffTime = 0;
+        ModelAndView modelAndView = new ModelAndView("workList");
+        try {
+            if (username != null && sessionId != null && !"".equals(username) && !"".equals(sessionId)) {
 
-            ModelAndView modelAndView = new ModelAndView("workList");
+                long totalWorkingTime = 0;
+                long totalMinusTime = 0;
+                long totalDiffTime = 0;
 
-            if (workingMonth == null || "".equals(workingMonth)) {
-                workingMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
-            }
-
-            List<WorkingInfo> workingInfos = workCheckerService.getWorkData(sessionId, workingMonth);
-            if (workingInfos != null) {
-                for (WorkingInfo wi : workingInfos) {
-                    totalWorkingTime += wi.getDiffTime();
-                    totalDiffTime += wi.getOriginTime();
-                    totalMinusTime += wi.getMinusTime() + wi.getAddTime();
+                if (workingMonth == null || "".equals(workingMonth)) {
+                    workingMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
                 }
-                modelAndView.addObject("workingInfos", workingInfos);
-                modelAndView.addObject("totalWorkingTime", totalWorkingTime);
-                modelAndView.addObject("totalMinusTime", totalMinusTime);
-                modelAndView.addObject("totalDiffTime", totalDiffTime);
-            } else {
-                modelAndView.addObject("errorMessage", "그룹웨어 서버오류 나중에 다시 조회하세요.");
-            }
-            modelAndView.addObject("workingMonth", workingMonth);
 
-            return modelAndView;
+                List<WorkingInfo> workingInfos = workCheckerService.getWorkData(sessionId, username, workingMonth);
+                if (workingInfos != null) {
+                    for (WorkingInfo wi : workingInfos) {
+                        totalWorkingTime += wi.getDiffTime();
+                        totalDiffTime += wi.getOriginTime();
+                        totalMinusTime += wi.getMinusTime() + wi.getAddTime();
+                    }
+                    modelAndView.addObject("workingInfos", workingInfos);
+                    modelAndView.addObject("totalWorkingTime", totalWorkingTime);
+                    modelAndView.addObject("totalMinusTime", totalMinusTime);
+                    modelAndView.addObject("totalDiffTime", totalDiffTime);
+                } else {
+                    modelAndView.addObject("errorMessage", "그룹웨어 서버오류 나중에 다시 조회하세요.");
+                }
+                modelAndView.addObject("username", username);
+                modelAndView.addObject("workingMonth", workingMonth);
+            } else {
+                modelAndView.setViewName("login");
+            }
+        } catch (Exception e) {
+            modelAndView.addObject("errorMessage", e.getMessage());
         }
+        return modelAndView;
     }
 
 }
