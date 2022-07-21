@@ -51,7 +51,7 @@ public class FrontController {
             log.info("Login Success : [{}]", username);
             modelAndView.setViewName("loginSuccess");
         } catch (Exception e) {
-            log.error("Login Fail : [{}]", username, e);
+            log.error("Login Fail : [{}] - {}", username, e.getMessage());
             modelAndView.setViewName("login");
             modelAndView.addObject("loginError", e.getMessage());
         }

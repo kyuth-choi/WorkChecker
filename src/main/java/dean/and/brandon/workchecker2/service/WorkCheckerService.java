@@ -36,14 +36,13 @@ public class WorkCheckerService {
             if (!sessionId.equals("")) {
                 String returnData = setLogin(sessionId, username, password);
                 if (!"success".equals(returnData)) {
-                    log.info("[ERROR] 로그인 실패 : {}", returnData);
                     throw new Exception("[ERROR] 로그인 실패 : " + returnData);
                 }
             } else {
                 throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 서버 오류");
             }
         } catch (ResourceAccessException e) {
-            log.error("", e);
+            log.error("그룹웨어 서버 오류", e);
             if (e.getRootCause() instanceof SocketTimeoutException) {
                 throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 응답 지연 \n(08:30~ 10:30 트래픽 과다로 응답지연 가능성 높습니다.)");
             }
