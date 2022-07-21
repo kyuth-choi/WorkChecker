@@ -111,9 +111,9 @@
                 for (let colCnt = 0; colCnt < rowData.length; colCnt++) {
                     let columnData = rowData[colCnt].innerHTML;
                     if (columnData == null || columnData.length === 0) {
-                        columnData = "".replace(/"/g, '""');
+                        columnData = "".replace(/"/g, '""')
                     } else {
-                        columnData = columnData.toString().replace(/"/g, '""'); // escape double quotes
+                        columnData = columnData.toString().replace(/"/g, '""').replace(/<[^>]*>?/g,''); // escape double quotes
                     }
                     csvString = csvString + '"' + columnData + '",';
                 }
