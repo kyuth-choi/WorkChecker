@@ -40,14 +40,14 @@ public class WorkCheckerService {
                     throw new Exception("[ERROR] 로그인 실패 : " + returnData);
                 }
             } else {
-                throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 서버 오류 1");
+                throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 서버 오류");
             }
         } catch (ResourceAccessException e) {
             log.error("", e);
             if (e.getRootCause() instanceof SocketTimeoutException) {
                 throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 응답 지연 \n(08:30~ 10:30 트래픽 과다로 응답지연 가능성 높습니다.)");
             }
-            throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 서버 오류 2");
+            throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 서버 오류");
         }
 
         return sessionId;
@@ -192,9 +192,8 @@ public class WorkCheckerService {
         ResponseEntity<String> response = restTemplate.getForEntity(endpointUrl, String.class);
 
         List<String> cookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
-        if(cookies != null) {
+        if (cookies != null) {
             for (String cookie : cookies) {
-                log.info(cookie);
                 for (String cookieValue : cookie.replace(";", "").split(" ")) {
                     if (cookieValue.contains("JSESSIONID")) {
                         sessionId = cookieValue;
@@ -202,8 +201,6 @@ public class WorkCheckerService {
                     }
                 }
             }
-        } else {
-            log.info("cookiescookiescookiescookiescookies null");
         }
         return sessionId;
     }

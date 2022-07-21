@@ -48,9 +48,10 @@ public class FrontController {
             String sessionId = workCheckerService.getLogin(username, password);
             response.addCookie(new Cookie("username", username));
             response.addCookie(new Cookie("sessionId", sessionId));
+            log.info("Login Success : [{}]", username);
             modelAndView.setViewName("loginSuccess");
         } catch (Exception e) {
-            log.error("Login Fail : " + username, e);
+            log.error("Login Fail : [{}]", username, e);
             modelAndView.setViewName("login");
             modelAndView.addObject("loginError", e.getMessage());
         }
