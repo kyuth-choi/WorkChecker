@@ -11,22 +11,27 @@
 <div style="width: 1000px; margin: 20px 0 100px 20px;">
     <a href="/" style="float:right">로그아웃</a>
     <h1 style="text-align: center;">근태 계산기 </h1>
-    <div>
+    <div style="float:left; width: 30%; padding-bottom: 8px">
         <div class="spinner-border" id="loading" role="status" style="display: none">
         </div>
         <form id="newWorkList" action="/workList" method="get" style="display: block">
-            <select id="year" class="form-select" style="width: 10%;display: inline;" onchange="changeDate()">
+            <select id="year" class="form-select" style="width: 35%;display: inline;" onchange="changeDate()">
                 <option value="2022">2022</option>
                 <option value="2023">2023</option>
                 <option value="2024">2024</option>
             </select>
-            <select id="month" class="form-select" style="width: 10%;display: inline;" onchange="changeDate()">
+            <select id="month" class="form-select" style="width: 25%;display: inline;" onchange="changeDate()">
                 <option th:each="num : ${#numbers.sequence(1,12)}" th:text="${#numbers.formatInteger(num, 2)}"
                         th:value="${#numbers.formatInteger(num, 2)}"></option>
             </select>
 
             <input type="hidden" id="workingMonth" name="workingMonth" th:value="${workingMonth}">
         </form>
+    </div>
+    <div style="float:right; padding-bottom: 8px">
+        <button class="btn btn-md btn-primary btn-block" id="excelDownBtn" onclick="exportTableToCsv()">
+            엑셀다운
+        </button>
     </div>
     <table id="workingTable" style="margin-top: 20px" class="table table-bordered">
         <colgroup>
@@ -36,7 +41,7 @@
             <col width="11%"/>
             <col width="11%"/>
             <col width="11%"/>
-            <col />
+            <col/>
         </colgroup>
         <thead>
         <tr>
@@ -83,12 +88,6 @@
         </tbody>
     </table>
     <br/>
-    <div style="float:right;">
-        <button class="btn btn-lg btn-primary btn-block" id="excelDownBtn"
-                onclick="exportTableToCsv()">
-            엑셀다운
-        </button>
-    </div>
 </div>
 </body>
 
@@ -113,7 +112,7 @@
                     if (columnData == null || columnData.length === 0) {
                         columnData = "".replace(/"/g, '""')
                     } else {
-                        columnData = columnData.toString().replace(/"/g, '""').replace(/<[^>]*>?/g,''); // escape double quotes
+                        columnData = columnData.toString().replace(/"/g, '""').replace(/<[^>]*>?/g, ''); // escape double quotes
                     }
                     csvString = csvString + '"' + columnData + '",';
                 }
