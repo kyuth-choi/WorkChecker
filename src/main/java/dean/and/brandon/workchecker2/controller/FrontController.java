@@ -67,7 +67,6 @@ public class FrontController {
         ModelAndView modelAndView = new ModelAndView("workList");
         try {
             if (username != null && sessionId != null && !"".equals(username) && !"".equals(sessionId)) {
-
                 long totalWorkingTime = 0;
                 long totalMinusTime = 0;
                 long totalDiffTime = 0;
@@ -75,13 +74,13 @@ public class FrontController {
                 if (workingMonth == null || "".equals(workingMonth)) {
                     workingMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
                 }
-
+                log.info("Retrieve Working Data : [{}] - [{}]", username, workingMonth);
                 List<WorkingInfo> workingInfos = workCheckerService.getWorkData(sessionId, username, workingMonth);
                 if (workingInfos != null) {
                     for (WorkingInfo wi : workingInfos) {
                         totalWorkingTime += wi.getDiffTime();
                         totalDiffTime += wi.getOriginTime();
-                        totalMinusTime += wi.getMinusTime() + wi.getAddTime();
+                        totalMinusTime += wi.getMinusTime() + (wi.getDiffTime() > 0 ? wi.getAddTime() : 0);
                     }
                     modelAndView.addObject("workingInfos", workingInfos);
                     modelAndView.addObject("totalWorkingTime", totalWorkingTime);

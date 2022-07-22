@@ -54,10 +54,8 @@ public class WorkCheckerService {
 
     public List<WorkingInfo> getWorkData(String sessionId, String username, String workingMonth) throws Exception {
 
-        String returnData;
-        List<WorkingInfo> workingInfos;
         try {
-            returnData = getWorkTime(sessionId, username, workingMonth);
+            String returnData = getWorkTime(sessionId, username, workingMonth);
 
             JsonObject convertedObject = new Gson().fromJson(returnData, JsonObject.class);
 
@@ -65,7 +63,7 @@ public class WorkCheckerService {
             JsonArray data2Array = convertedObject.getAsJsonArray("data2");
 
             HashMap<String, String> annualMap = new HashMap<>();
-            workingInfos = new ArrayList<>();
+            List<WorkingInfo> workingInfos = new ArrayList<>();
 
             for (int i = 0; i < data2Array.size(); ++i) {
                 JsonObject jsonObject = data2Array.get(i).getAsJsonObject();
@@ -98,6 +96,7 @@ public class WorkCheckerService {
                     long carEtime = jsonObject.get("carEtime").isJsonNull() ? 0 : jsonObject.get("carEtime").getAsLong();
                     LocalDateTime startDate = null;
                     LocalDateTime endDate = null;
+                    // 출근 시간 -> 8시 이전 출근시 8시 고정, 오전 반차 후 14시 이전 출근시 14시 출근 고정
                     if (carStime != 0) {
                         startDate = Instant.ofEpochMilli(carStime).atZone(ZoneId.systemDefault()).toLocalDateTime();
                         if (startDate.toLocalTime().isBefore(LocalTime.of(8, 0, 0))) {
@@ -109,6 +108,8 @@ public class WorkCheckerService {
                             }
                         }
                     }
+                    // 퇴근시간 -> 오후반차 사용시 13시 퇴근 고정
+
                     if (carEtime != 0) {
                         endDate = Instant.ofEpochMilli(carEtime).atZone(ZoneId.systemDefault()).toLocalDateTime();
                         if (annualMap.containsKey(carDate) && annualMap.get(carDate).equals("오후반차")) {
@@ -119,11 +120,22 @@ public class WorkCheckerService {
                     }
                     long diffTime = 0;
                     long addTime = 0L;
+
+                    // 출퇴근 기록
+                    if (annualMap.containsKey(carDate)) {
+                        if (annualMap.get(carDate).contains("반차")) {
+                            addTime = 240L;
+                        } else if (annualMap.get(carDate).equals("2시간사용")) {
+                            addTime = 120L;
+                        } else if (annualMap.get(carDate).equals("1시간사용")) {
+                            addTime = 60L;
+                        }
+                    }
+
                     if (startDate != null && endDate != null) {
                         if (annualMap.containsKey(carDate)) {
                             if (annualMap.get(carDate).contains("반차")) {
                                 diffTime = ChronoUnit.MINUTES.between(startDate, endDate);
-                                addTime = 240L;
                             } else { //쿠폰 사용
                                 //점심시간 60분
                                 if (annualMap.get(carDate).equals("2시간사용") && startDate.toLocalTime().isAfter(LocalTime.of(12, 59, 59))) {
@@ -134,11 +146,6 @@ public class WorkCheckerService {
                                     diffTime = ChronoUnit.MINUTES.between(startDate, endDate);
                                 } else {
                                     diffTime = ChronoUnit.MINUTES.between(startDate, endDate) - 60;
-                                }
-                                if (annualMap.get(carDate).equals("2시간사용")) {
-                                    addTime = 120L;
-                                } else if (annualMap.get(carDate).equals("1시간사용")) {
-                                    addTime = 60L;
                                 }
                             }
                         } else {
@@ -170,7 +177,7 @@ public class WorkCheckerService {
             //날짜순 sorting
 
             workingInfos.sort(Comparator.comparing(WorkingInfo::getCarDate));
-
+            return workingInfos;
         } catch (ResourceAccessException e) {
             log.error("", e);
             if (e.getRootCause() instanceof SocketTimeoutException) {
@@ -178,7 +185,6 @@ public class WorkCheckerService {
             }
             throw new Exception("그룹웨어 서버 오류");
         }
-        return workingInfos;
     }
 
     public String getJSessionId(String username) {
