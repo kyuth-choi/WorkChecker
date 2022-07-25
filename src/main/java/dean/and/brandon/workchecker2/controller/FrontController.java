@@ -80,7 +80,7 @@ public class FrontController {
                     for (WorkingInfo wi : workingInfos) {
                         totalWorkingTime += wi.getDiffTime();
                         totalDiffTime += wi.getOriginTime();
-                        totalMinusTime += wi.getMinusTime() + (wi.getDiffTime() > 0 ? wi.getAddTime() : 0);
+                        totalMinusTime += wi.getMinusTime();
                     }
                     modelAndView.addObject("workingInfos", workingInfos);
                     modelAndView.addObject("totalWorkingTime", totalWorkingTime);

@@ -62,8 +62,7 @@
                 <td th:text="${workingInfo.endDate}"></td>
                 <td th:text="${workingInfo.diffTime}"></td>
                 <td th:text="${workingInfo.originTime}"></td>
-                <td th:if="${workingInfo.diffTime} > 0" th:text="${workingInfo.minusTime+workingInfo.addTime}"></td>
-                <td th:unless="${workingInfo.diffTime} > 0">0</td>
+                <td th:text="${workingInfo.minusTime}"></td>
                 <td th:text="${workingInfo.note}"></td>
             </tr>
             <tr th:if="${#lists.size(workingInfos)} > 0">

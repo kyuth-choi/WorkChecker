@@ -45,10 +45,10 @@ public class WorkCheckerApiController {
                 long totalDiffTime = 0L;
 
                 for (WorkingInfo wi : workingInfos) {
-                    csvWriter.writeNext(new String[]{wi.getCarDate(), wi.getStartDate(), wi.getEndDate(), String.valueOf(wi.getDiffTime()), String.valueOf(wi.getOriginTime()), String.valueOf(wi.getMinusTime() + wi.getAddTime()), wi.getNote()});
+                    csvWriter.writeNext(new String[]{wi.getCarDate(), wi.getStartDate(), wi.getEndDate(), String.valueOf(wi.getDiffTime()), String.valueOf(wi.getOriginTime()), String.valueOf(wi.getMinusTime()), wi.getNote()});
                     totalWorkingTime += wi.getDiffTime();
                     totalDiffTime += wi.getOriginTime();
-                    totalMinusTime += wi.getMinusTime() + wi.getAddTime();
+                    totalMinusTime += wi.getMinusTime();
                 }
                 // footer
                 csvWriter.writeNext(new String[]{"", "", "합계", String.valueOf(totalWorkingTime), String.valueOf(totalDiffTime), String.valueOf(totalMinusTime)});

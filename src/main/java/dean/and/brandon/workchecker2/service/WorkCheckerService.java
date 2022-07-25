@@ -10,7 +10,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -109,7 +108,6 @@ public class WorkCheckerService {
                         }
                     }
                     // 퇴근시간 -> 오후반차 사용시 13시 퇴근 고정
-
                     if (carEtime != 0) {
                         endDate = Instant.ofEpochMilli(carEtime).atZone(ZoneId.systemDefault()).toLocalDateTime();
                         if (annualMap.containsKey(carDate) && annualMap.get(carDate).equals("오후반차")) {
@@ -121,17 +119,23 @@ public class WorkCheckerService {
                     long diffTime = 0;
                     long addTime = 0L;
 
-                    // 출퇴근 기록
+                    //비고 내용 추가 및 하루 근무 시간 빼기
+                    long originTime = 480;
+                    String note = "";
                     if (annualMap.containsKey(carDate)) {
                         if (annualMap.get(carDate).contains("반차")) {
-                            addTime = 240L;
+                            originTime -= 240L;
+                            note = annualMap.get(carDate) + " (-240)";
                         } else if (annualMap.get(carDate).equals("2시간사용")) {
-                            addTime = 120L;
+                            originTime -= 120;
+                            note = annualMap.get(carDate) + " (-120)";
                         } else if (annualMap.get(carDate).equals("1시간사용")) {
-                            addTime = 60L;
+                            originTime -= 60L;
+                            note = annualMap.get(carDate) + " (-60)";
                         }
                     }
 
+                    // 근무 시간 계산시 점심시간 전 퇴근 및 점심시간 후 출근하는 경우 점심시간 빼기 제외 및 근무시간 계산
                     if (startDate != null && endDate != null) {
                         if (annualMap.containsKey(carDate)) {
                             if (annualMap.get(carDate).contains("반차")) {
@@ -158,17 +162,16 @@ public class WorkCheckerService {
                     wi.setStartDate(startDate != null ? startDate.format(dateTimeFormatter) : "");
                     wi.setEndDate(endDate != null ? endDate.format(dateTimeFormatter) : "");
                     wi.setAnnualType(annualMap.get(carDate));
-                    wi.setAddTime(addTime);
                     wi.setDiffTime(diffTime);
+                    wi.setOriginTime(originTime);
 
-                    wi.setOriginTime(480 - addTime);
+                    //당일 퇴근 전인 경우 정상근무시간-하루근무시간 = 0 으로 세팅
                     if (carEtime == 0 && LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")).equals(carDate)) {
                         wi.setMinusTime(0L);
                     } else {
-                        wi.setMinusTime(diffTime - 480);
+                        wi.setMinusTime(diffTime - originTime);
                     }
 
-                    String note = wi.getAnnualType() == null ? "" : wi.getAnnualType() + (wi.getAddTime() > 0L ? " (-" + wi.getAddTime() + ")" : "");
                     wi.setNote(note);
                     workingInfos.add(wi);
                 }

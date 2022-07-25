@@ -16,7 +16,6 @@ public class WorkingInfo {
     String annualType;
     String note;
 
-    long addTime;
     long diffTime;
     long originTime;
     long minusTime;
