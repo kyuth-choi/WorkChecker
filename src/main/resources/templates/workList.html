@@ -105,6 +105,7 @@
 
 <script th:inline="javascript">
     const workingMonth = [[${workingMonth}]];
+    const totalMinusTime = [[${totalMinusTime}]] > 0 ? "+" + [[${totalMinusTime}]] : [[${totalMinusTime}]]
     document.getElementById("year").value = workingMonth.substring(0, 4)
     document.getElementById("month").value = workingMonth.substring(4, 6)
     let point = "";
@@ -137,11 +138,12 @@
         const toDayDiffMin = Math.floor(toDayDiffTime / 60) - lunchTime;
         const toDayDiffSec = Math.floor(toDayDiffTime % 60);
         document.getElementById("toDayDiffTime").innerText = toDayDiffMin.toString() + "." + toDayDiffSec.toString();
-        document.getElementById("toDayMinusTime").innerText = (Number(toDayDiffMin) - Number(document.getElementById("toDayOriginTime").innerText)).toString()
-        document.getElementById("totalWorkingTime").innerText = (Number([[${totalWorkingTime}]]) + toDayDiffMin).toString();
-        document.getElementById("totalMinusTime").innerText = (Number([[${totalWorkingTime}]]) + toDayDiffMin - Number([[${totalDiffTime}]])).toString() + " (" + [[${totalMinusTime}]] +")";
+        document.getElementById("toDayMinusTime").innerText = (Number(toDayDiffMin) - Number(document.getElementById("toDayOriginTime").innerText)).toString();
 
-        if (point.length == 4) {
+        document.getElementById("totalWorkingTime").innerText = (Number([[${totalWorkingTime}]]) + toDayDiffMin).toString();
+        document.getElementById("totalMinusTime").innerText = (Number([[${totalWorkingTime}]]) + toDayDiffMin - Number([[${totalDiffTime}]])).toString() + "\n ( 전일기준 : " + totalMinusTime + ")";
+
+        if (point.length === 4) {
             point = ".";
         } else {
             point += ".";
