@@ -60,11 +60,6 @@ public class WorkCheckerService {
 
             JsonArray dataArray = convertedObject.getAsJsonArray("data");
             JsonArray data2Array = convertedObject.getAsJsonArray("data2");
-            data2Array.add(new Gson().fromJson("{\"carType\":\"반차\",\"carDiff\":\"\",\"carEtime\":\"2022.08.02\",\"carDate\":\"2022-08-02\",\"carStime\":\"2022.08.02\",\"rewardType\":\"T\"}", JsonObject.class));
-//            data2Array.add(new Gson().fromJson("{\"carType\":\"오전반차\",\"carDiff\":\"\",\"carEtime\":\"2022.07.27\",\"carDate\":\"2022-07-27\",\"carStime\":\"2022.07.27\",\"rewardType\":\"T\"}", JsonObject.class));
-//            data2Array.add(new Gson().fromJson("{\"carType\":\"2시간사용\",\"carDiff\":\"\",\"carEtime\":\"2022.07.27\",\"carDate\":\"2022-07-27\",\"carStime\":\"2022.07.27\",\"rewardType\":\"T\"}", JsonObject.class));
-            data2Array.add(new Gson().fromJson("{\"carType\":\"2시간사용\",\"carDiff\":\"\",\"carEtime\":\"2022.08.02\",\"carDate\":\"2022-08-02\",\"carStime\":\"2022.08.02\",\"rewardType\":\"T\"}", JsonObject.class));
-            data2Array.add(new Gson().fromJson("{\"carType\":\"2시간사용\",\"carDiff\":\"\",\"carEtime\":\"2022.08.03\",\"carDate\":\"2022-08-03\",\"carStime\":\"2022.08.03\",\"rewardType\":\"T\"}", JsonObject.class));
 
             HashMap<String, String> annualMap = new HashMap<>();
             List<WorkingInfo> workingInfos = new ArrayList<>();
