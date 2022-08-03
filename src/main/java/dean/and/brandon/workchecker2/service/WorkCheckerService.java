@@ -60,6 +60,11 @@ public class WorkCheckerService {
 
             JsonArray dataArray = convertedObject.getAsJsonArray("data");
             JsonArray data2Array = convertedObject.getAsJsonArray("data2");
+            data2Array.add(new Gson().fromJson("{\"carType\":\"반차\",\"carDiff\":\"\",\"carEtime\":\"2022.08.02\",\"carDate\":\"2022-08-02\",\"carStime\":\"2022.08.02\",\"rewardType\":\"T\"}", JsonObject.class));
+//            data2Array.add(new Gson().fromJson("{\"carType\":\"오전반차\",\"carDiff\":\"\",\"carEtime\":\"2022.07.27\",\"carDate\":\"2022-07-27\",\"carStime\":\"2022.07.27\",\"rewardType\":\"T\"}", JsonObject.class));
+//            data2Array.add(new Gson().fromJson("{\"carType\":\"2시간사용\",\"carDiff\":\"\",\"carEtime\":\"2022.07.27\",\"carDate\":\"2022-07-27\",\"carStime\":\"2022.07.27\",\"rewardType\":\"T\"}", JsonObject.class));
+            data2Array.add(new Gson().fromJson("{\"carType\":\"2시간사용\",\"carDiff\":\"\",\"carEtime\":\"2022.08.02\",\"carDate\":\"2022-08-02\",\"carStime\":\"2022.08.02\",\"rewardType\":\"T\"}", JsonObject.class));
+            data2Array.add(new Gson().fromJson("{\"carType\":\"2시간사용\",\"carDiff\":\"\",\"carEtime\":\"2022.08.03\",\"carDate\":\"2022-08-03\",\"carStime\":\"2022.08.03\",\"rewardType\":\"T\"}", JsonObject.class));
 
             HashMap<String, String> annualMap = new HashMap<>();
             List<WorkingInfo> workingInfos = new ArrayList<>();
@@ -80,7 +85,12 @@ public class WorkCheckerService {
                         wi.setMinusTime(0L);
                         workingInfos.add(wi);
                     } else {
-                        annualMap.put(carDate, carType);
+                        //복합 사용 처리
+                        if (annualMap.containsKey(carDate)) {
+                            annualMap.put(carDate, annualMap.get(carDate) + " + " + carType);
+                        } else {
+                            annualMap.put(carDate, carType);
+                        }
                     }
                 }
             }
@@ -117,7 +127,6 @@ public class WorkCheckerService {
                         }
                     }
                     long diffTime = 0;
-                    long addTime = 0L;
 
                     //비고 내용 추가 및 하루 근무 시간 빼기
                     long originTime = 480;
@@ -125,14 +134,14 @@ public class WorkCheckerService {
                     if (annualMap.containsKey(carDate)) {
                         if (annualMap.get(carDate).contains("반차")) {
                             originTime -= 240L;
-                            note = annualMap.get(carDate) + " (-240)";
-                        } else if (annualMap.get(carDate).equals("2시간사용")) {
-                            originTime -= 120;
-                            note = annualMap.get(carDate) + " (-120)";
-                        } else if (annualMap.get(carDate).equals("1시간사용")) {
-                            originTime -= 60L;
-                            note = annualMap.get(carDate) + " (-60)";
                         }
+                        if (annualMap.get(carDate).contains("2시간사용")) {
+                            originTime -= 120;
+                        }
+                        if (annualMap.get(carDate).contains("1시간사용")) {
+                            originTime -= 60L;
+                        }
+                        note = annualMap.get(carDate) + " (-" + (480 - originTime) + ")";
                     }
 
                     // 근무 시간 계산시 점심시간 전 퇴근 및 점심시간 후 출근하는 경우 점심시간 빼기 제외 및 근무시간 계산
@@ -140,7 +149,7 @@ public class WorkCheckerService {
                         if (annualMap.containsKey(carDate)) {
                             if (annualMap.get(carDate).contains("반차")) {
                                 diffTime = ChronoUnit.MINUTES.between(startDate, endDate);
-                            } else { //쿠폰 사용
+                            } else {
                                 //점심시간 60분
                                 if (annualMap.get(carDate).equals("2시간사용") && startDate.toLocalTime().isAfter(LocalTime.of(12, 59, 59))) {
                                     startDate = LocalDateTime.of(startDate.toLocalDate(), LocalTime.of(14, 0, 0));

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.print.attribute.standard.Media;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -81,11 +82,15 @@ public class FrontController {
                         totalWorkingTime += wi.getDiffTime();
                         totalDiffTime += wi.getOriginTime();
                         totalMinusTime += wi.getMinusTime();
+                        if (wi.getCarDate().equals(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))) && "".equals(wi.getEndDate())) {
+                            modelAndView.addObject("realTimeCalc", true);
+                        }
                     }
                     modelAndView.addObject("workingInfos", workingInfos);
                     modelAndView.addObject("totalWorkingTime", totalWorkingTime);
                     modelAndView.addObject("totalMinusTime", totalMinusTime);
                     modelAndView.addObject("totalDiffTime", totalDiffTime);
+
                 } else {
                     modelAndView.addObject("errorMessage", "그룹웨어 서버오류 나중에 다시 조회하세요.");
                 }

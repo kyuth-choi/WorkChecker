@@ -8,7 +8,7 @@
     <title>woking</title>
 </head>
 <body>
-<div style="width: 1000px; margin: 20px 0 100px 20px;">
+<div style="width: 1100px; margin: 20px 0 100px 20px;">
     <a href="/" style="float:right">로그아웃</a>
     <h1 style="text-align: center;">근태 계산기 </h1>
     <div style="float:left; width: 30%; padding-bottom: 8px">
@@ -35,12 +35,12 @@
     </div>
     <table id="workingTable" style="margin-top: 20px" class="table table-bordered">
         <colgroup>
+            <col width="10%"/>
+            <col width="18%"/>
+            <col width="18%"/>
+            <col width="11%"/>
             <col width="12%"/>
-            <col width="20%"/>
-            <col width="20%"/>
-            <col width="11%"/>
-            <col width="11%"/>
-            <col width="11%"/>
+            <col width="13%"/>
             <col/>
         </colgroup>
         <thead>
@@ -48,9 +48,9 @@
             <th>근무일자</th>
             <th>출근시각</th>
             <th>퇴근시각</th>
-            <th>정상근무시간</th>
-            <th>하루근무시간</th>
-            <th>정상근무시간</br>-하루근무시간</th>
+            <th>근무시간 (분)</th>
+            <th>일일근무시간 (분)</th>
+            <th>근무시간</br>-일일근무시간 (분)</th>
             <th>비고</th>
         </tr>
         </thead>
@@ -58,11 +58,22 @@
             <tbody>
             <tr th:each="workingInfo : ${workingInfos}">
                 <td th:text="${#temporals.createDate(workingInfo.carDate, 'yyyyMMdd')}"></td>
-                <td th:text="${workingInfo.startDate}"></td>
-                <td th:text="${workingInfo.endDate}"></td>
-                <td th:text="${workingInfo.diffTime}"></td>
-                <td th:text="${workingInfo.originTime}"></td>
-                <td th:text="${workingInfo.minusTime}"></td>
+                <th:block
+                        th:if="${realTimeCalc} and ${#dates.format(#dates.createNow(), 'yyyyMMdd')} == ${workingInfo.carDate}">
+                    <td id="toDayStartTime" th:text="${workingInfo.startDate}"></td>
+                    <td id="toDayEndTime"></td>
+                    <td id="toDayDiffTime" th:text="${workingInfo.diffTime}"></td>
+                    <td id="toDayOriginTime" th:text="${workingInfo.originTime}"></td>
+                    <td id="toDayMinusTime" th:text="${workingInfo.minusTime}"></td>
+                </th:block>
+                <th:block
+                        th:unless="${realTimeCalc} and ${#dates.format(#dates.createNow(), 'yyyyMMdd')} == ${workingInfo.carDate}">
+                    <td th:text="${workingInfo.startDate}"></td>
+                    <td th:text="${workingInfo.endDate}"></td>
+                    <td th:text="${workingInfo.diffTime}"></td>
+                    <td th:text="${workingInfo.originTime}"></td>
+                    <td th:text="${workingInfo.minusTime}"></td>
+                </th:block>
                 <td th:text="${workingInfo.note}"></td>
             </tr>
             <tr th:if="${#lists.size(workingInfos)} > 0">
@@ -72,10 +83,11 @@
                 <td></td>
                 <td></td>
                 <td>합계</td>
-                <td th:text="${totalWorkingTime}"></td>
+                <td id="totalWorkingTime" th:text="${totalWorkingTime}"></td>
                 <td th:text="${totalDiffTime}"></td>
-                <td th:text="${totalMinusTime}" th:if="${totalMinusTime} < 0" style="color: red"></td>
-                <td th:text="${totalMinusTime}" th:unless="${totalMinusTime} < 0"></td>
+                <td id="totalMinusTime" th:text="${totalMinusTime}" th:if="${totalMinusTime} < 0"
+                    style="color: red"></td>
+                <td id="totalMinusTime" th:text="${totalMinusTime}" th:unless="${totalMinusTime} < 0"></td>
                 <td></td>
             </tr>
             <tr th:unless="${#lists.size(workingInfos)} > 0">
@@ -93,13 +105,60 @@
 
 <script th:inline="javascript">
     const workingMonth = [[${workingMonth}]];
-    const username = [[${username}]];
     document.getElementById("year").value = workingMonth.substring(0, 4)
     document.getElementById("month").value = workingMonth.substring(4, 6)
+    let point = "";
+
+    if ([[${realTimeCalc}]]) {
+        realTimeCalc()
+        setTimeout(() => {
+            setInterval(realTimeCalc, 500);
+        }, 1000)
+    }
+
+    function realTimeCalc() {
+        const now = new Date();
+        // 13시부터 증가
+        let lunchTime;
+        if (now.getHours() < 13) {
+            lunchTime = 0;
+        } else if (now.getHours() > 14) {
+            lunchTime = 60;
+        } else {
+            lunchTime = (now - new Date().setHours(13, 0, 0, 0)) / 1000 / 60;
+            if (lunchTime < 0) {
+                lunchTime = 0;
+            } else if (lunchTime > 60) {
+                lunchTime = 60
+            }
+        }
+
+        const toDayDiffTime = (now - new Date(document.getElementById("toDayStartTime").innerText)) / 1000;
+        const toDayDiffMin = Math.floor(toDayDiffTime / 60) - lunchTime;
+        const toDayDiffSec = Math.floor(toDayDiffTime % 60);
+        document.getElementById("toDayDiffTime").innerText = toDayDiffMin.toString() + "." + toDayDiffSec.toString();
+        document.getElementById("toDayMinusTime").innerText = (Number(toDayDiffMin) - Number(document.getElementById("toDayOriginTime").innerText)).toString()
+        document.getElementById("totalWorkingTime").innerText = (Number([[${totalWorkingTime}]]) + toDayDiffMin).toString();
+        document.getElementById("totalMinusTime").innerText = (Number([[${totalWorkingTime}]]) + toDayDiffMin - Number([[${totalDiffTime}]])).toString() + " (" + [[${totalMinusTime}]] +")";
+
+        if (point.length == 4) {
+            point = ".";
+        } else {
+            point += ".";
+        }
+        document.getElementById("toDayEndTime").innerText = "업무 중 " + point;
+    }
+
+    function changeDate() {
+        document.getElementById("newWorkList").setAttribute("style", "display:none")
+        document.getElementById("loading").setAttribute("style", "display:block")
+        document.getElementById("workingMonth").value = document.getElementById("year").value + "" + document.getElementById("month").value
+        document.getElementById("newWorkList").submit();
+    }
 
     function exportTableToCsv() {
 
-        const filename = workingMonth + "_" + username + "_working.csv";
+        const filename = workingMonth + "_" + [[${username}]] + "_working.csv";
         const BOM = "\uFEFF";
 
         const table = document.getElementById('workingTable');
@@ -157,12 +216,6 @@
         }
     }
 
-    const changeDate = function () {
-        document.getElementById("newWorkList").setAttribute("style", "display:none")
-        document.getElementById("loading").setAttribute("style", "display:block")
-        document.getElementById("workingMonth").value = document.getElementById("year").value + "" + document.getElementById("month").value
-        document.getElementById("newWorkList").submit();
-    }
 </script>
 <style>
     td {
