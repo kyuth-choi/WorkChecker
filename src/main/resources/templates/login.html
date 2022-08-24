@@ -1,39 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <!-- 합쳐지고 최소화된 최신 CSS -->
-    <!-- CSS only -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <title>login</title>
+    <meta charset="UTF-8" />
+    <title>급여차감 방지기</title>
+
+    <link rel="stylesheet" href="../static/css/styles.css" />
 </head>
 <body>
-<div class="container" style="width: 300px">.
-    <form class="form-signin" id="loginForm" method="post" action="/" onsubmit="login()">
-        <h2 class="form-signin-heading">근태 계산기</h2>
-        <p style="font-size: 12px; margin-bottom: 10px">
-            <span style="color: red">참고용으로 사용하시기 바랍니다.</span> <br/>
-            09:00~ 10:30 그룹웨어 서버 부하로 지연있습니다. <br/>시간외에 사용하세요.
-        </p>
-        <p>
-            <input type="text" id="username" name="username" class="form-control" placeholder="사번" required=""
-                   autofocus="">
-        </p>
-        <p>
-            <input type="password" id="password" name="password" class="form-control" placeholder="그룹웨어 비밀번호" required="">
-        </p>
-        <p th:text="${loginError}"></p>
-        <div class="d-grid gap-2">
-            <button class="btn btn-lg btn-primary btn-block" id="loginBtn" type="submit">
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="loginBtnSpinner"
-                      style="display: none"></span>
-                로그인
-            </button>
+<div class="container">
+    <div class="top-banner">
+        <div class="top-banner__text">
+            <img src="../static/images/ic-info.svg" alt="info" />
+            참고용으로 사용하시기 바랍니다.<br />
+            09:00 ~ 10:30 그룹웨어 서버 부하로 지연될 수 있으니 해당 시간 외에
+            사용해주세요.
         </div>
-        <span style="font-size: 10px; color: gray;">powered by 딘&브랜든</span>
-    </form>
+        <div class="top-banner__button">
+            <a class="btn-groupware" href="http://gwintra.lunasoft.co.kr/loginForm.do" alt="그룹웨어 가기">그룹웨어 가기</a>
+        </div>
+    </div>
+    <main>
+        <div class="main__image">
+            <img src="../static/images/bg-sign.png" alt="login" />
+        </div>
+        <div class="main__form">
+            <form class="main__sign-form">
+                <h1>급여차감 방지기</h1>
+                <label for="id">그룹웨어ID </label>
+                <input
+                        id="id"
+                        type="text"
+                        name="id"
+                        class="sign-id check"
+                        placeholder="그룹웨어 ID(사번)를 입력해주세요."
+                />
+                <label for="password">그룹웨어PW</label>
+                <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        class="sign-password"
+                        placeholder="그룹웨어 Password를 입력해주세요."
+                />
+                <!-- 👇 버튼에 .active 클래스 붙으면 버튼 컬러 변경 -->
+                <button class="btn-sign">Log in</button>
+            </form>
+        </div>
+    </main>
 </div>
+
+<!-- 땡! -->
+<div class="modal-container">
+    <div class="modal-dim"></div>
+    <div class="modal-body">
+        <div class="modal-contents">
+            <img src="./images/login-failed.png" alt="로그인 실패">
+        </div>
+        <button class="btn-resign">다시 시도하기</button>
+    </div>
+</div>
+
 </body>
 <script th:inline="javascript">
     const login = function () {
