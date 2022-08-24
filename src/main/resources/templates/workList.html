@@ -29,13 +29,14 @@
         </form>
     </div>
     <div style="float:right; padding-bottom: 8px">
+        <button class="btn btn-md btn-primary btn-block" id="calendarForm" onclick="changeForm()"> 캘린더 beta</button>
         <button class="btn btn-md btn-primary btn-block" id="excelDownBtn" onclick="exportTableToCsv()">
             엑셀다운
         </button>
     </div>
     <table id="workingTable" style="margin-top: 20px" class="table table-bordered">
         <colgroup>
-            <col width="10%"/>
+            <col width="12%"/>
             <col width="18%"/>
             <col width="18%"/>
             <col width="11%"/>
@@ -57,7 +58,7 @@
         <th:block th:if="${workingInfos}">
             <tbody>
             <tr th:each="workingInfo : ${workingInfos}">
-                <td th:text="${#temporals.createDate(workingInfo.carDate, 'yyyyMMdd')}"></td>
+                <td th:text="${#temporals.format(#temporals.createDate(workingInfo.carDate, 'yyyyMMdd'), 'yyyy.MM.dd (E)')}"></td>
                 <th:block
                         th:if="${realTimeCalc} and ${#dates.format(#dates.createNow(), 'yyyyMMdd')} == ${workingInfo.carDate}">
                     <td id="toDayStartTime" th:text="${workingInfo.startDate}"></td>
@@ -83,11 +84,10 @@
                 <td></td>
                 <td></td>
                 <td>합계</td>
-                <td id="totalWorkingTime" th:text="${totalWorkingTime}"></td>
-                <td th:text="${totalDiffTime}"></td>
-                <td id="totalMinusTime" th:text="${totalMinusTime}" th:if="${totalMinusTime} < 0"
-                    style="color: red"></td>
-                <td id="totalMinusTime" th:text="${totalMinusTime}" th:unless="${totalMinusTime} < 0"></td>
+                <td id="totalWorkingTime" th:text="${totalWorkingTime} + '분'"></td>
+                <td th:text="${#numbers.formatInteger(totalDiffTime, 1, 'COMMA')} + '분'"></td>
+                <td id="totalMinusTime"
+                    th:text="(${totalMinusTime} >= 0 ? '+'+${totalMinusTime} : ${totalMinusTime}) + '분'"></td>
                 <td></td>
             </tr>
             <tr th:unless="${#lists.size(workingInfos)} > 0">
@@ -99,16 +99,120 @@
         </tr>
         </tbody>
     </table>
+    <div id="workingCalendar" style="width: 1100px; display: none" ></div>
     <br/>
 </div>
+
 </body>
 
 <script th:inline="javascript">
+
     const workingMonth = [[${workingMonth}]];
-    const totalMinusTime = [[${totalMinusTime}]] > 0 ? "+" + [[${totalMinusTime}]] : [[${totalMinusTime}]]
+    const totalMinusTime = [[${totalMinusTime}]];
     document.getElementById("year").value = workingMonth.substring(0, 4)
     document.getElementById("month").value = workingMonth.substring(4, 6)
     let point = "";
+
+    let formType = 'LIST';
+    function changeForm() {
+        if(formType === 'LIST') {
+            formType = 'CALENDAR';
+            document.getElementById("workingCalendar").style.display = "inline-block";
+            document.getElementById("workingTable").style.display = "none";
+        } else {
+            formType = 'LIST';
+            document.getElementById("workingTable").style.display = "inline-block";
+            document.getElementById("workingCalendar").style.display = "none";
+        }
+    }
+
+    const setCalendarData = () => {
+        const year = workingMonth.substring(0, 4);
+        const month = workingMonth.substring(4, 6);
+        let calHtml = "";
+        const setDate = new Date(year, month - 1, 1);
+        const firstDay = setDate.getDate();
+        const firstDayName = setDate.getDay();
+        const lastDate = new Date(
+            setDate.getFullYear(),
+            setDate.getMonth() + 1,
+            0
+        );
+        const prevLastDay = new Date(
+            setDate.getFullYear(),
+            setDate.getMonth(),
+            0
+        ).getDate();
+
+        let startDayCount = 1;
+        let lastDayCount = 1;
+
+        let dayCount = 0;
+        let sumOfMinusTime = 0;
+        mainLoop:for (let i = 0; i < 6; i++) {
+            for (let j = 0; j < 7; j++) {
+                if (i === 0 && j < firstDayName) {
+                    // 스타일링을 위한 클래스 추가
+                    calHtml +=
+                        `<div style='background-color:#dee2e6;' class='calendar__day'><span>${(prevLastDay - (firstDayName - 1) + j)}</span><span></span></div>`;
+                } else if (startDayCount > lastDate.getDate()) {
+                    if (lastDate.getDay() === 6) break mainLoop;
+                    lastDate.setDate(lastDate.getDate() + 1)
+                    calHtml +=
+                        `<div style='background-color:#dee2e6;' class='calendar__day'><span>${lastDayCount++}</span><span></span></div>`;
+
+                } else {
+                    if (setDate.getDay() !== 0 && setDate.getDay() !== 6) {
+                        if (![[${workingInfos}]][dayCount]) {
+                            calHtml +=
+                                `<div class='calendar__day'><span>${startDayCount}</span><span id='${year}${month}${setFixDayCount(startDayCount++)}'></span></div>`;
+                        } else {
+                            const workingInfo = [[${workingInfos}]][dayCount];
+                            if (workingInfo.startDate === '연차') {
+                                calHtml +=
+                                    `<div class='calendar__day'><span>${startDayCount}</span><span id='${year}${month}${setFixDayCount(startDayCount++)}'>
+                                <span style="color: red"> 연차</span></span>
+                            </div>`;
+                            } else {
+                                sumOfMinusTime += workingInfo.minusTime;
+                                calHtml +=
+                                    `<div class='calendar__day'><span>${startDayCount}</span><span id='${year}${month}${setFixDayCount(startDayCount++)}'>
+                                    <span style="color:green">` + (!workingInfo.annualType ? '' : ' ' + workingInfo.annualType) + `</span></span><div style="font-size: 13px;">`
+                                    + workingInfo.diffTime + `분 / ` + workingInfo.originTime + `분` + `</div>
+                                    <div style="font-size: 13px;">` + (workingInfo.minusTime >= 0 ? '+' + workingInfo.minusTime : workingInfo.minusTime) + `분` + `</div>
+                                    <div style="font-size: 13px;">소계 : ` + (sumOfMinusTime >= 0 ? '+' + sumOfMinusTime : sumOfMinusTime) + `분</div>
+                                    </div>`;
+
+                            }
+                            dayCount++;
+                        }
+                    } else {
+                        calHtml +=
+                            `<div style='background-color:#FFB3BB;' class='calendar__day'><span>${startDayCount}</span><span id='${year}${month}${setFixDayCount(startDayCount++)}'></span></div>`;
+                    }
+                    setDate.setDate(setDate.getDate() + 1)
+                }
+            }
+        }
+        document
+            .querySelector("#workingCalendar")
+            .insertAdjacentHTML("beforeend", calHtml);
+    };
+    const setFixDayCount = number => {
+        let fixNum = "";
+        if (number < 10) {
+            fixNum = "0" + number;
+        } else {
+            fixNum = number;
+        }
+        return fixNum;
+    };
+    setCalendarData()
+    // if (today.getMonth() + 1 < 10) {
+    //     setCalendarData(today.getFullYear(), "0" + (today.getMonth() + 1));
+    // } else {
+    //     setCalendarData(today.getFullYear(), "" + (today.getMonth() + 1));
+    // }
 
     if ([[${realTimeCalc}]]) {
         realTimeCalc()
@@ -140,8 +244,13 @@
         document.getElementById("toDayDiffTime").innerText = toDayDiffMin.toString() + "." + toDayDiffSec.toString();
         document.getElementById("toDayMinusTime").innerText = (Number(toDayDiffMin) - Number(document.getElementById("toDayOriginTime").innerText)).toString();
 
-        document.getElementById("totalWorkingTime").innerText = (Number([[${totalWorkingTime}]]) + toDayDiffMin).toString();
-        document.getElementById("totalMinusTime").innerText = (Number([[${totalWorkingTime}]]) + toDayDiffMin - Number([[${totalDiffTime}]])).toString() + "\n ( 전일기준 : " + totalMinusTime + ")";
+        document.getElementById("totalWorkingTime").innerText = (Number([[${totalWorkingTime}]]) + toDayDiffMin).toLocaleString("ko-KR") + "분";
+        document.getElementById("totalMinusTime").innerHTML = (Number([[${totalWorkingTime}]]) + toDayDiffMin - Number([[${totalDiffTime}]])).toLocaleString("ko-KR") + "분<br/>";
+        if (totalMinusTime >= 0) {
+            document.getElementById("totalMinusTime").innerHTML += "<span>(전일기준 : +" + totalMinusTime + "분)</span>";
+        } else {
+            document.getElementById("totalMinusTime").innerHTML += "<span style='color: red'>(전일기준 : " + totalMinusTime + "분)</span>";
+        }
 
         if (point.length === 4) {
             point = ".";
@@ -222,6 +331,41 @@
 <style>
     td {
         font-size: 13px
+    }
+
+    html {
+        height: 100%;
+    }
+
+    body {
+        height: 100%;
+        margin: 0;
+        position: relative;
+    }
+
+    #calendar {
+        height: 99%;
+        box-sizing: border-box;
+        padding: 0.5%;
+    }
+
+    .calendar__day {
+        display: inline-block;
+        vertical-align: bottom;
+        width: calc(97% / 7);
+        height: 124px; //임시
+        box-sizing: border-box;
+        border: 1px solid;
+        border-collapse: collapse;
+        padding: 20px;
+    }
+
+    .horizontalGutter {
+        margin-right: 0.5%;
+    }
+
+    .verticalGutter {
+        margin-top: 0.5%;
     }
 </style>
 

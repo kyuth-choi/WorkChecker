@@ -10,7 +10,7 @@
     </parent>
     <groupId>dean.and.brandon</groupId>
     <artifactId>WorkChecker2</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
     <name>WorkChecker2</name>
     <packaging>jar</packaging>
     <description>luna working report</description>
