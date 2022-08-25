@@ -3,12 +3,19 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
-// import 'bootstrap/dist/css/bootstrap.css'
-// import 'bootstrap-vue/dist/bootstrap-vue.css'
+import VModal from 'vue-js-modal'
+import VMoment from 'vue-moment'
+import BootstrapVue from 'bootstrap-vue'
+
+/* eslint-disable no-new */
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 Vue.config.productionTip = false
-Vue.use(require('vue-moment'))
-/* eslint-disable no-new */
+Vue.use(VMoment)
+Vue.use(BootstrapVue)
+Vue.use(VModal, { dynamic: true, injectModalsContainer: true, dialog: true })
+
 new Vue({
   el: '#app',
   router,

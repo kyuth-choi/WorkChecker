@@ -1,6 +1,6 @@
 <template>
   <div>
-    <table id="workingTable" style="margin-top: 20px" class="table table-bordered">
+    <table id="workingTable" style="margin-top: 20px; font-size: 13px" class="table table-bordered">
       <colgroup>
         <col width="12%"/>
         <col width="18%"/>
@@ -22,45 +22,56 @@
       </tr>
       </thead>
       <tbody>
-      <template v-if="workingInfos.length > 0">
-        <tr v-for="(item, index) in workingInfos" :key="index">
-          <template v-if="!!toDayWorking && totalWorkingData.realTimeCalc && $moment().format('YYYYMMDD') === item.carDate">
-            <td >{{ $moment(String(toDayWorking.carDate)).format('YYYY.MM.DD') }}</td>
-            <td style="text-align: left">{{ toDayWorking.startDate }}</td>
-            <td style="text-align: left">{{ toDayWorking.endDate }}</td>
-            <td>{{ toDayWorking.diffTime }}</td>
-            <td>{{ toDayWorking.originTime }}</td>
-            <td>{{ toDayWorking.minusTime }}</td>
-            <td>{{ toDayWorking.note }}</td>
-          </template>
-          <template v-else>
-            <td>{{ $moment(String(item.carDate)).format('YYYY.MM.DD') }}</td>
-            <td style="text-align: left">{{ item.startDate }}</td>
-            <td style="text-align: left">{{ item.endDate }}</td>
-            <td>{{ item.diffTime }}</td>
-            <td>{{ item.originTime }}</td>
-            <td>{{ item.minusTime }}</td>
-            <td>{{ item.note }}</td>
-          </template>
-
-        </tr>
+      <template v-if="!workingInfos">
         <tr>
-           <td colspan="7"></td>
-        </tr>
-        <tr>
-          <td></td>
-          <td></td>
-          <td>합계</td>
-          <td> {{ Number(totalWorkingData.totalWorkingTime) + toDayDiffMin }} </td>
-          <td> {{ totalWorkingData.totalDiffTime }} </td>
-          <td> {{ (Number(totalWorkingData.totalWorkingTime) + toDayDiffMin - Number(totalWorkingData.totalDiffTime)) }} </td>
-          <td></td>
+          <td colspan="7" style="text-align: center"><b-spinner v-show="true"></b-spinner></td>
         </tr>
       </template>
       <template v-else>
-        <tr>
-          <td colspan="7">데이터가 없습니다.</td>
-        </tr>
+        <template v-if="workingInfos.length > 0">
+          <tr v-for="(item, index) in workingInfos" :key="index">
+            <template
+              v-if="!!toDayWorking && totalWorkingData.realTimeCalc && $moment().format('YYYYMMDD') === item.carDate">
+              <td>{{ $moment(String(toDayWorking.carDate)).format('YYYY.MM.DD') }}</td>
+              <td style="text-align: left">{{ toDayWorking.startDate }}</td>
+              <td style="text-align: left">{{ toDayWorking.endDate }}</td>
+              <td>{{ toDayWorking.diffTime }}</td>
+              <td>{{ toDayWorking.originTime }}</td>
+              <td>{{ toDayWorking.minusTime }}</td>
+              <td>{{ toDayWorking.note }}</td>
+            </template>
+            <template v-else>
+              <td>{{ $moment(String(item.carDate)).format('YYYY.MM.DD') }}</td>
+              <td style="text-align: left">{{ item.startDate }}</td>
+              <td style="text-align: left">{{ item.endDate }}</td>
+              <td>{{ item.diffTime }}</td>
+              <td>{{ item.originTime }}</td>
+              <td>{{ item.minusTime }}</td>
+              <td>{{ item.note }}</td>
+            </template>
+
+          </tr>
+          <tr>
+            <td colspan="7"></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td>합계</td>
+            <td> {{ Number(totalWorkingData.totalWorkingTime) + toDayDiffMin }}</td>
+            <td> {{ totalWorkingData.totalDiffTime }}</td>
+            <td> {{
+                (Number(totalWorkingData.totalWorkingTime) + toDayDiffMin - Number(totalWorkingData.totalDiffTime))
+              }}
+            </td>
+            <td></td>
+          </tr>
+        </template>
+        <template v-else>
+          <tr>
+            <td colspan="7">데이터가 없습니다.</td>
+          </tr>
+        </template>
       </template>
       </tbody>
     </table>
@@ -70,6 +81,9 @@
 <script>
 export default {
   name: 'WorkingTable',
+  mounted () {
+    console.log(this.workingInfos)
+  },
   created () {
     setInterval(() => this.realTimeCalc(), 500)
   },

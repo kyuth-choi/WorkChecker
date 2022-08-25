@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" style="height: 760px; min-width: 1440px; padding:0">
     <div class="top-banner">
       <div class="top-banner__text">
         <img src="../assets/images/ic-info.svg" alt="info" />
@@ -8,14 +8,16 @@
         사용해주세요.
       </div>
       <div class="top-banner__button">
-        <a class="btn-groupware" href="http://gwintra.lunasoft.co.kr/loginForm.do" alt="그룹웨어 가기">그룹웨어 가기</a>
+        <a class="btn-groupware" href="http://gwintra.lunasoft.co.kr/loginForm.do" target="_blank" alt="루나소프트 그룹웨어 가기">루나소프트 그룹웨어 가기</a>
+        <a class="btn-groupware" href="http://gwintra.cellook.kr/loginForm.do" target="_blank" alt="그린앤그레이 그룹웨어 가기">그린앤그레이 그룹웨어 가기</a>
       </div>
     </div>
     <main>
       <div class="main__image">
         <img src="../assets/images/bg-sign.png" alt="login" />
       </div>
-      <div class="main__form main__sign-form">
+      <div class="main__form">
+        <div class="main__sign-form">
           <h1>급여차감 방지기</h1>
           <label for="id">그룹웨어ID </label>
           <input
@@ -25,6 +27,7 @@
             name="id"
             class="sign-id check"
             placeholder="그룹웨어 ID(사번)를 입력해주세요."
+            @keyup.enter="login"
           />
           <label for="password">그룹웨어PW</label>
           <input
@@ -34,9 +37,11 @@
             name="password"
             class="sign-password"
             placeholder="그룹웨어 Password를 입력해주세요."
+            @keyup.enter="login"
           />
           <!-- 👇 버튼에 .active 클래스 붙으면 버튼 컬러 변경 -->
-          <button class="btn-sign" @click="login">Log in</button>
+          <button class="btn-sign active" @click="login" :disabled="loginButtonIsDisabled">Log in</button>
+        </div>
       </div>
     </main>
   </div>
@@ -53,7 +58,8 @@ export default {
   data () {
     return {
       username: '',
-      password: ''
+      password: '',
+      loginButtonIsDisabled: false
     }
   },
   methods: {
@@ -69,14 +75,27 @@ export default {
       }
       if (flag) {
         Swal.fire({
-          icon: 'warning',
-          title: validMsg
+          title: validMsg,
+          imageUrl: '/static/fail.png',
+          imageHeight: 360,
+          imageWidth: 362,
+          width: 525,
+          height: 455,
+          showCloseButton: false,
+          confirmButtonText: '다시 시도하기',
+          customClass: {
+            confirmButton: 'swal2-button',
+            popup: 'swal2-popup'
+          },
+          buttonsStyling: false
         })
       }
       return flag
     },
     login () {
+      this.loginButtonIsDisabled = true
       if (this.loginValidator()) {
+        this.loginButtonIsDisabled = false
         return
       }
       const formData = new FormData()
@@ -92,18 +111,39 @@ export default {
             localStorage.setItem('username', response.data.data.username)
             this.$router.push({name: 'WorkingInfo'})
           } else {
-            const errorMessage = !response.data.responseMsg ? '그룹웨어 서버 오류' : response.data.responseMsg
             Swal.fire({
-              icon: 'error',
-              title: '로그인 실패',
-              html: errorMessage
+              imageUrl: '/static/login-failed.png',
+              imageHeight: 247,
+              imageWidth: 362,
+              width: 525,
+              height: 455,
+              showCloseButton: false,
+              confirmButtonText: '다시 시도하기',
+              customClass: {
+                confirmButton: 'swal2-button',
+                popup: 'swal2-popup'
+              },
+              buttonsStyling: false
             })
           }
         })
         .catch(e => {
           console.log(e)
+        }).finally(() => {
+          this.loginButtonIsDisabled = false
         })
     }
   }
 }
 </script>
+<style scoped>
+.container {
+  background-color: white;
+  padding-top: 0;
+}
+main input,button {
+  font-size: small;
+  line-height: initial;
+  font-family: auto;
+}
+</style>
