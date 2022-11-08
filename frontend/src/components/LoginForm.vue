@@ -47,7 +47,7 @@
             <b-spinner small v-show="!loginActive"></b-spinner>
             Log in
           </button>
-          <span style="font-size: 10px; color:grey">contribute by 브랜든 수키 루시</span>
+          <span style="font-size: 10px; color:grey">contribute by 브랜든&수키&루시</span>
         </div>
       </div>
     </main>
