@@ -11,8 +11,11 @@ export default {
 </script>
 <style>
 @import '/assets/css/styles.css';
-#app {
+html, body, #app {
   /*height: 100%;*/
+  width: 100vw;
+}
+#app {
   color: #2c3e50;
 }
 main {
@@ -30,6 +33,7 @@ main {
   line-height: 20px;
   color: #fff;
 }
+
 .swal2-popup {
   border-radius: 36px !important;
 }

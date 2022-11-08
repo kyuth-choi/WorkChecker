@@ -3,6 +3,7 @@ package dean.and.brandon.workchecker2.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import dean.and.brandon.workchecker2.vo.WorkingInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +56,6 @@ public class WorkCheckerService {
 
         try {
             String returnData = getWorkTime(sessionId, username, workingMonth);
-
             JsonObject convertedObject = new Gson().fromJson(returnData, JsonObject.class);
 
             JsonArray dataArray = convertedObject.getAsJsonArray("data");

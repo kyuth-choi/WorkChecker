@@ -5,13 +5,15 @@
       <h1 style="text-align: center;">급여차감 방지기 </h1>
       <div style="float:left; width: 30%; padding-bottom: 8px">
         <b-spinner v-show="!showDateSelector"></b-spinner>
-        <select id="year" class="form-select" style="width: 35%;display: inline;" v-model="selectedYear" v-show="showDateSelector"
+        <select id="year" class="form-select" style="width: 35%;display: inline;" v-model="selectedYear"
+                v-show="showDateSelector"
                 @change="changeDate()">
           <option value="2022">2022</option>
           <option value="2023">2023</option>
           <option value="2024">2024</option>
         </select>
-        <select class="form-select" style="width: 25%;display: inline;" v-model="selectedMonth" v-show="showDateSelector" @change="changeDate()">
+        <select class="form-select" style="width: 25%;display: inline;" v-model="selectedMonth"
+                v-show="showDateSelector" @change="changeDate()">
           <option v-for="index in 12" :key="index" :value="index.toString().padStart(2, '0')">
             {{ index.toString().padStart(2, '0') }}
           </option>
@@ -21,24 +23,35 @@
       </div>
       <div style="float:right; padding-bottom: 8px">
       </div>
-      <router-view :workingInfos="workingInfos" :totalWorkingData="totalWorkingData"
-                   :toDayWorking="!workingInfos ? {} : workingInfos[workingInfos.length - 1]" :key="$route.fullPath"></router-view>
+      <router-view ></router-view>
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'WorkingInfo',
-  created () {
-    this.username = localStorage.getItem('username')
-    this.sessionId = localStorage.getItem('sessionId')
-    this.getWorkingData()
+  async created () {
+    // this.username = localStorage.getItem('username')
+    // this.sessionId = localStorage.getItem('sessionId')
+    // this.getWorkingData()
     const now = new Date()
     this.selectedYear = now.getFullYear()
     this.selectedMonth = (now.getMonth() + 1).toString().padStart(2, '0')
+
+    const data = {
+      username: localStorage.getItem('username'),
+      sessionId: localStorage.getItem('sessionId'),
+      workingMonth: now.getFullYear() + (now.getMonth() + 1).toString().padStart(2, '0')
+    }
+    await this.retrieveWorkingData(data)
+  },
+  computed: {
+    ...mapGetters({
+      workingData: 'WorkingInfoStore/getWorkingData'
+    })
   },
   data () {
     return {
@@ -58,36 +71,113 @@ export default {
     }
   },
   methods: {
+    ...mapActions(
+      'WorkingInfoStore', {
+        retrieveWorkingData: 'retrieveWorkingData'
+      }
+    ),
+    exportTableToCsv () {
+      const filename = this.selectedYear + this.selectedMonth + '_' + this.username + '_working.csv'
+      const BOM = '\uFEFF'
+
+      const table = document.getElementById('workingTable')
+      let csvString = BOM
+      for (let rowCnt = 0; rowCnt < table.rows.length; rowCnt++) {
+        const rowData = table.rows[rowCnt].cells
+        if (rowData.length > 1) {
+          for (let colCnt = 0; colCnt < rowData.length; colCnt++) {
+            let columnData = rowData[colCnt].innerHTML
+            if (columnData == null || columnData.length === 0) {
+              columnData = ''.replace(/"/g, '""')
+            } else {
+              columnData = columnData.toString().replace(/"/g, '""').replace(/<[^>]*>?/g, '') // escape double quotes
+            }
+            csvString = csvString + '"' + columnData + '",'
+          }
+          csvString = csvString.substring(0, csvString.length - 1)
+          csvString = csvString + '\r\n'
+        }
+      }
+      csvString = csvString.substring(0, csvString.length - 1)
+
+      // IE 10, 11, Edge Run
+      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        const blob = new Blob([decodeURIComponent(csvString)], {
+          type: 'text/csv;charset=utf8'
+        })
+        window.navigator.msSaveOrOpenBlob(blob, filename)
+      } else if (window.Blob && window.URL) {
+        // HTML5 Blob
+        const blob = new Blob([csvString], {type: 'text/csv;charset=utf8'})
+        const csvUrl = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.setAttribute('style', 'display:none')
+        a.setAttribute('href', csvUrl)
+        a.setAttribute('download', filename)
+        document.body.appendChild(a)
+
+        a.click()
+        a.remove()
+      } else {
+        // Data URI
+        const csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csvString)
+        // const blob = new Blob([csvString], { type: 'text/csv;charset=utf8' });
+        // const csvUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a')
+        a.setAttribute('style', 'display:none')
+        a.setAttribute('target', '_blank')
+        a.setAttribute('href', csvData)
+        a.setAttribute('download', filename)
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+      }
+    },
     logout () {
       localStorage.clear()
       this.$router.push('/login')
     },
     changeDate () {
       this.showDateSelector = false
-      this.getWorkingData()
-    },
-    getWorkingData () {
-      const workingMonth = this.selectedYear + this.selectedMonth
-      const formData = new FormData()
-      formData.append('sessionId', this.sessionId)
-      formData.append('username', this.username)
-      formData.append('workingMonth', workingMonth)
-      axios
-        .post('http://localhost/api/workList', formData)
-        .then(response => {
-          this.showDateSelector = true
-          this.workingInfos = response.data.data.workingInfos
-          this.totalWorkingData = {
-            realTimeCalc: response.data.data.realTimeCalc,
-            totalDiffTime: response.data.data.totalDiffTime,
-            totalMinusTime: response.data.data.totalMinusTime,
-            totalWorkingTime: response.data.data.totalWorkingTime
-          }
-        })
-        .catch(e => {
-          console.log(e)
-        })
+      // this.getWorkingData()
+      const data = {
+        username: localStorage.getItem('username'),
+        sessionId: localStorage.getItem('sessionId'),
+        workingMonth: this.selectedYear + '' + this.selectedMonth
+      }
+      this.retrieveWorkingData(data).then(response => { this.showDateSelector = true })
     }
+    // getWorkingData () {
+    //   const workingMonth = this.selectedYear + this.selectedMonth
+    //   const formData = new FormData()
+    //   formData.append('sessionId', this.sessionId)
+    //   formData.append('username', this.username)
+    //   formData.append('workingMonth', workingMonth)
+    //   axios
+    //     .post('http://localhost/api/workList', formData)
+    //     .then(response => {
+    //       if (response.data.responseCode === 0 && response.data.data !== null) {
+    //         this.showDateSelector = true
+    //         this.workingInfos = response.data.data.workingInfos
+    //         this.totalWorkingData = {
+    //           realTimeCalc: response.data.data.realTimeCalc,
+    //           totalDiffTime: response.data.data.totalDiffTime,
+    //           totalMinusTime: response.data.data.totalMinusTime,
+    //           totalWorkingTime: response.data.data.totalWorkingTime
+    //         }
+    //       } else {
+    //         if (response.data.responseCode === -1) {
+    //           localStorage.clear()
+    //           this.$router.push('/login')
+    //         }
+    //         this.workingInfos = []
+    //       }
+    //     })
+    //     .catch(e => {
+    //       this.workingInfos = []
+    //       console.log(e)
+    //     })
+    // }
   }
 }
 </script>

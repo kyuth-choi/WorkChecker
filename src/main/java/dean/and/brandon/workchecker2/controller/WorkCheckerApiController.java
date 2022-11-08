@@ -1,5 +1,6 @@
 package dean.and.brandon.workchecker2.controller;
 
+import com.google.gson.JsonSyntaxException;
 import com.opencsv.CSVWriter;
 import dean.and.brandon.workchecker2.service.WorkCheckerService;
 import dean.and.brandon.workchecker2.vo.ResponseInfo;
@@ -17,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Slf4j
-@CrossOrigin(origins="*")
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(value = "/api")
 @RequiredArgsConstructor
@@ -91,6 +92,10 @@ public class WorkCheckerApiController {
                 return new ResponseInfo(-1, "다시 로그인해주세요");
             }
         } catch (Exception e) {
+            log.error("", e);
+            if (e instanceof JsonSyntaxException) {
+                return new ResponseInfo(-1, "다시 로그인해주세요");
+            }
             resultMap.put("errorMessage", e.getMessage());
         }
         return responseInfo;

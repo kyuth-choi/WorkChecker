@@ -230,7 +230,7 @@
         } else if (now.getHours() > 14) {
             lunchTime = 60;
         } else {
-            lunchTime = (now - new Date().setHours(13, 0, 0, 0)) / 1000 / 60;
+            lunchTime = Math.floor((now - new Date().setHours(13, 0, 0, 0)) / 1000 / 60);
             if (lunchTime < 0) {
                 lunchTime = 0;
             } else if (lunchTime > 60) {
