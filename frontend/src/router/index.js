@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-// import swal from 'sweetalert2'
+import swal from 'sweetalert2'
 
 Vue.use(Router)
 
@@ -11,6 +11,11 @@ const router = new Router({
       path: '/',
       name: 'Root',
       redirect: '/login'
+    },
+    {
+      path: '/login',
+      name: 'LoginForm',
+      component: () => import('@/components/LoginForm')
     },
     {
       path: '/workingInfo',
@@ -31,11 +36,6 @@ const router = new Router({
       ]
     },
     {
-      path: '/login',
-      name: 'LoginForm',
-      component: () => import('@/components/LoginForm')
-    },
-    {
       name: 'notFound',
       path: '/404',
       component: () => import('@/components/NotFoundComponent.vue'),
@@ -48,10 +48,10 @@ const router = new Router({
 
   ]
 })
-// const swalConfirm = swal.mixin({
-//   icon: 'error',
-//   title: '로그인정보 확인에 실패하였습니다. </br> 재접속 해주시기 바랍니다.'
-// })
+const swalConfirm = swal.mixin({
+  icon: 'error',
+  title: '로그인정보 확인에 실패하였습니다. </br> 재접속 해주시기 바랍니다.'
+})
 router.beforeEach((to, from, next) => {
   if (to.path === '/login') {
     next()
@@ -62,12 +62,12 @@ router.beforeEach((to, from, next) => {
       return next()
     } else {
       localStorage.clear()
-      next('/login')
-      // swalConfirm.fire({
-      //   didClose () {
-      //     next('/login')
-      //   }
-      // })
+      // next('/login')
+      swalConfirm.fire({
+        didClose () {
+          next('/login')
+        }
+      })
     }
   }
 })

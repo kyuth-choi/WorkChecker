@@ -3,7 +3,6 @@ package dean.and.brandon.workchecker2.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
 import dean.and.brandon.workchecker2.vo.WorkingInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -127,7 +126,7 @@ public class WorkCheckerService {
                     long originTime = 480;
                     String note = "";
                     if (annualMap.containsKey(carDate)) {
-                        if (annualMap.get(carDate).contains("반차")) {
+                        if (annualMap.get(carDate).contains("반차") || annualMap.get(carDate).contains("건강검진")) {
                             originTime -= 240L;
                         }
                         if (annualMap.get(carDate).contains("2시간사용")) {
@@ -182,7 +181,6 @@ public class WorkCheckerService {
             }
 
             //날짜순 sorting
-
             workingInfos.sort(Comparator.comparing(WorkingInfo::getCarDate));
             return workingInfos;
         } catch (ResourceAccessException e) {

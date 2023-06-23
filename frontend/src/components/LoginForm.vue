@@ -56,7 +56,7 @@
 
 <script>
 import axios from 'axios'
-import Swal from 'sweetalert2'
+import swal from 'sweetalert2'
 
 export default {
   name: 'LoginForm',
@@ -87,13 +87,13 @@ export default {
         validMsg = '비밀번호를 입력해주세요'
       }
       if (flag) {
-        Swal.fire({
+        swal.fire({
           title: validMsg,
           imageUrl: '/static/fail.png',
           imageHeight: 360,
           imageWidth: 362,
           width: 525,
-          height: 455,
+          // height: 455,
           showCloseButton: false,
           confirmButtonText: '다시 시도하기',
           customClass: {
@@ -127,7 +127,7 @@ export default {
             localStorage.setItem('username', response.data.data.username)
             this.$router.push({name: 'WorkingInfo'})
           } else {
-            Swal.fire({
+            swal.fire({
               imageUrl: '/static/login-failed.png',
               imageHeight: 247,
               imageWidth: 362,

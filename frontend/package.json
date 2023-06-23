@@ -16,7 +16,7 @@
     "bootstrap-vue": "^2.22.0",
     "sass": "^1.54.5",
     "sass-loader": "^10.3.1",
-    "sweetalert2": "^11.4.29",
+    "sweetalert2": "^10.15.5",
     "vue": "^2.7.10",
     "vue-js-modal": "^2.0.1",
     "vue-moment": "^4.1.0",

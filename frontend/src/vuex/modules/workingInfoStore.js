@@ -1,16 +1,8 @@
-import { WORKINFO } from '../mutation-types'
+import {WORKINFO} from '../mutation-types'
 import workingInfoApi from '../../api/workingInfoApi'
 
 const state = {
-  workingData: {
-    workingInfos: [],
-    totalWorkingInfo: {
-      realTimeCalc: false,
-      totalDiffTime: 0,
-      totalMinusTime: 0,
-      totalWorkingTime: 0
-    }
-  }
+  workingData: {}
 }
 
 const getters = {
@@ -21,9 +13,10 @@ const getters = {
 
 const actions = {
   async retrieveWorkingData ({commit}, data) {
-    workingInfoApi.retrieveWorkingData(data.workingMonth, data.username, data.sessionId).then(res => {
-      commit(WORKINFO.SET_WORKING_DATA, res)
-    })
+    workingInfoApi.retrieveWorkingData(data.workingMonth, data.username, data.sessionId)
+      .then(res => {
+        commit(WORKINFO.SET_WORKING_DATA, res)
+      })
   },
   async leaveWork ({commit}) {
     commit(WORKINFO.SET_WORKING_END, false)
@@ -32,7 +25,6 @@ const actions = {
 
 const mutations = {
   [WORKINFO.SET_WORKING_DATA] (state, payload) {
-    console.log(payload)
     state.workingData = payload
   },
   [WORKINFO.SET_WORKING_END] (state, payload) {

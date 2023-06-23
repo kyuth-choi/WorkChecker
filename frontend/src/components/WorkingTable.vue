@@ -2,12 +2,12 @@
   <div>
     <table id="workingTable" style="margin-top: 20px; font-size: 13px" class="table table-bordered">
       <colgroup>
-        <col width="12%"/>
+        <col width="10%"/>
         <col width="18%"/>
         <col width="18%"/>
-        <col width="11%"/>
         <col width="12%"/>
-        <col width="13%"/>
+        <col width="12%"/>
+        <col width="14%"/>
         <col/>
       </colgroup>
       <thead>
@@ -32,29 +32,13 @@
       <template v-else>
         <template v-if="workingData.workingInfos.length > 0">
           <tr v-for="(item, index) in workingData.workingInfos" :key="index">
-            <template
-              v-if="!!workingData.toDayWorking && workingData.totalWorkingInfo.realTimeCalc && $moment().format('YYYYMMDD') === item.carDate">
-              <td>{{ $moment(String(toDayWorking.carDate)).format('YYYY.MM.DD') }}</td>
-              <td>{{ toDayWorking.startDate }}</td>
-              <td style="display: flex; justify-content: space-between; flex-direction: row; align-items: center;">
-                {{ toDayWorking.endDate }}
-                <button class="btn btn-md btn-primary btn-block" @click="leaveWork">퇴근</button>
-              </td>
-              <td>{{ toDayWorking.diffTime }}</td>
-              <td>{{ toDayWorking.originTime }}</td>
-              <td>{{ toDayWorking.minusTime }}</td>
-              <td>{{ toDayWorking.note }}</td>
-            </template>
-            <template v-else>
-              <td>{{ $moment(String(item.carDate)).format('YYYY.MM.DD') }}</td>
-              <td>{{ item.startDate }}</td>
-              <td>{{ item.endDate }}</td>
-              <td>{{ item.diffTime }}</td>
-              <td>{{ item.originTime }}</td>
-              <td>{{ item.minusTime }}</td>
-              <td>{{ item.note }}</td>
-            </template>
-
+            <td>{{ $moment(String(item.carDate)).format('YYYY.MM.DD') }}</td>
+            <td>{{ item.startDate }}</td>
+            <td>{{ item.endDate }}</td>
+            <td>{{ item.diffTime }}</td>
+            <td>{{ item.originTime }}</td>
+            <td>{{ item.minusTime }}</td>
+            <td>{{ item.note }}</td>
           </tr>
           <tr>
             <td colspan="7" style="height: 0px"></td>
@@ -62,12 +46,14 @@
           <tr>
             <td></td>
             <td></td>
-            <td>합계</td>
+            <td>합계 </td>
             <td> {{ Number(workingData.totalWorkingInfo.totalWorkingTime) + toDayDiffMin }}</td>
             <td> {{ workingData.totalWorkingInfo.totalDiffTime }}</td>
             <td>
-              {{ (Number(workingData.totalWorkingInfo.totalWorkingTime) + toDayDiffMin - Number(workingData.totalWorkingInfo.totalDiffTime)) }}
-              <br/><span>(전일기준 : {{ workingData.totalWorkingInfo.totalMinusTime > 0 ? '+' : '' }}{{
+              {{
+                (Number(workingData.totalWorkingInfo.totalWorkingTime) + toDayDiffMin - Number(workingData.totalWorkingInfo.totalDiffTime))
+              }}
+              <br/><span :style="[workingData.totalWorkingInfo.totalMinusTime < 0 ? {color:'red'} : {}]">(전일기준 : {{ workingData.totalWorkingInfo.totalMinusTime > 0 ? '+' : '' }}{{
                 workingData.totalWorkingInfo.totalMinusTime
               }})</span>
             </td>
@@ -87,7 +73,6 @@
 
 <script>
 import {mapActions, mapGetters} from 'vuex'
-
 export default {
   name: 'WorkingTable',
   computed: {
@@ -96,10 +81,11 @@ export default {
     })
   },
   created () {
-    setInterval(() => this.realTimeCalc(), 500)
+    this.interval = setInterval(() => this.realTimeCalc(), 500)
   },
   data () {
     return {
+      interval: {},
       point: '',
       toDayStartTime: '',
       realTimeDiffTime: 0,
@@ -114,20 +100,23 @@ export default {
       }
     ),
     realTimeCalc () {
-      if (this.workingData.totalWorkingInfo.realTimeCalc) {
+      if (this.workingData && this.workingData.totalWorkingInfo.realTimeCalc) {
         const now = new Date()
         // 13시부터 증가
         let lunchTime
-        if (now.getHours() < 13) {
-          lunchTime = 0
-        } else if (now.getHours() > 14) {
-          lunchTime = 60
-        } else {
-          lunchTime = Math.floor((now - new Date().setHours(13, 0, 0, 0)) / 1000 / 60)
-          if (lunchTime < 0) {
+
+        if (new Date(this.workingData.workingInfos[this.workingData.workingInfos.length - 1].startDate).getHours() < 14) {
+          if (now.getHours() < 13) {
             lunchTime = 0
-          } else if (lunchTime > 60) {
+          } else if (now.getHours() > 14) {
             lunchTime = 60
+          } else {
+            lunchTime = Math.floor((now - new Date().setHours(13, 30, 0, 0)) / 1000 / 60)
+            if (lunchTime < 0) {
+              lunchTime = 0
+            } else if (lunchTime > 60) {
+              lunchTime = 60
+            }
           }
         }
 
@@ -147,18 +136,18 @@ export default {
         this.workingData.workingInfos[this.workingData.workingInfos.length - 1].endDate = '업무 중 ' + this.point
       }
     }
+  },
+  props: {
+    workingInfos: {
+      type: Array
+    },
+    totalWorkingData: {
+      type: Object
+    },
+    toDayWorking: {
+      type: Object
+    }
   }
-  // props: {
-  //   workingInfos: {
-  //     type: Array
-  //   },
-  //   totalWorkingData: {
-  //     type: Object
-  //   },
-  //   toDayWorking: {
-  //     type: Object
-  //   }
-  // }
 }
 </script>
 <style scoped>

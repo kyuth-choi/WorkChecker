@@ -23,7 +23,7 @@
       </div>
       <div style="float:right; padding-bottom: 8px">
       </div>
-      <router-view ></router-view>
+      <router-view></router-view>
     </div>
   </div>
 </template>
@@ -33,10 +33,7 @@ import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'WorkingInfo',
-  async created () {
-    // this.username = localStorage.getItem('username')
-    // this.sessionId = localStorage.getItem('sessionId')
-    // this.getWorkingData()
+  created () {
     const now = new Date()
     this.selectedYear = now.getFullYear()
     this.selectedMonth = (now.getMonth() + 1).toString().padStart(2, '0')
@@ -46,7 +43,8 @@ export default {
       sessionId: localStorage.getItem('sessionId'),
       workingMonth: now.getFullYear() + (now.getMonth() + 1).toString().padStart(2, '0')
     }
-    await this.retrieveWorkingData(data)
+
+    this.retrieveWorkingData(data)
   },
   computed: {
     ...mapGetters({
@@ -135,49 +133,19 @@ export default {
     },
     logout () {
       localStorage.clear()
-      this.$router.push('/login')
+      this.$router.push('/')
     },
     changeDate () {
       this.showDateSelector = false
-      // this.getWorkingData()
       const data = {
         username: localStorage.getItem('username'),
         sessionId: localStorage.getItem('sessionId'),
         workingMonth: this.selectedYear + '' + this.selectedMonth
       }
-      this.retrieveWorkingData(data).then(response => { this.showDateSelector = true })
+      this.retrieveWorkingData(data).then(() => {
+        this.showDateSelector = true
+      })
     }
-    // getWorkingData () {
-    //   const workingMonth = this.selectedYear + this.selectedMonth
-    //   const formData = new FormData()
-    //   formData.append('sessionId', this.sessionId)
-    //   formData.append('username', this.username)
-    //   formData.append('workingMonth', workingMonth)
-    //   axios
-    //     .post('http://localhost/api/workList', formData)
-    //     .then(response => {
-    //       if (response.data.responseCode === 0 && response.data.data !== null) {
-    //         this.showDateSelector = true
-    //         this.workingInfos = response.data.data.workingInfos
-    //         this.totalWorkingData = {
-    //           realTimeCalc: response.data.data.realTimeCalc,
-    //           totalDiffTime: response.data.data.totalDiffTime,
-    //           totalMinusTime: response.data.data.totalMinusTime,
-    //           totalWorkingTime: response.data.data.totalWorkingTime
-    //         }
-    //       } else {
-    //         if (response.data.responseCode === -1) {
-    //           localStorage.clear()
-    //           this.$router.push('/login')
-    //         }
-    //         this.workingInfos = []
-    //       }
-    //     })
-    //     .catch(e => {
-    //       this.workingInfos = []
-    //       console.log(e)
-    //     })
-    // }
   }
 }
 </script>
