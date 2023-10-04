@@ -57,6 +57,7 @@ public class WorkCheckerApiController {
         ResponseInfo responseInfo = new ResponseInfo();
         HashMap<String, Object> resultMap = new HashMap<>();
         responseInfo.setData(resultMap);
+
         try {
 
             if (username != null && sessionId != null && !"".equals(username) && !"".equals(sessionId)) {
