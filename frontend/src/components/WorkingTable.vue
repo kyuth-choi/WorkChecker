@@ -105,35 +105,41 @@ export default {
         // 13시부터 증가
         let lunchTime
 
-        if (new Date(this.workingData.workingInfos[this.workingData.workingInfos.length - 1].startDate).getHours() < 14) {
-          if (now.getHours() < 13) {
-            lunchTime = 0
-          } else if (now.getHours() > 14) {
-            lunchTime = 60
-          } else {
-            lunchTime = Math.floor((now - new Date().setHours(13, 30, 0, 0)) / 1000 / 60)
-            if (lunchTime < 0) {
+        for (const item of this.workingData.workingInfos) {
+          if (new Date(item.startDate).getHours() < 14) {
+            if (now.getHours() < 13) {
               lunchTime = 0
-            } else if (lunchTime > 60) {
+            } else if (now.getHours() > 14) {
               lunchTime = 60
+            } else {
+              lunchTime = Math.floor((now - new Date().setHours(13, 30, 0, 0)) / 1000 / 60)
+              if (lunchTime < 0) {
+                lunchTime = 0
+              } else if (lunchTime > 60) {
+                lunchTime = 60
+              }
             }
           }
+
+          if (item.carDate === this.$moment(String(now)).format('YYYYMMDD')) {
+            const toDayDiffTime = (now - new Date(item.startDate)) / 1000
+            this.toDayDiffMin = Math.floor(toDayDiffTime / 60) - lunchTime
+            const toDayDiffSec = Math.floor(toDayDiffTime % 60)
+
+            item.diffTime = this.toDayDiffMin.toString() + '.' + toDayDiffSec.toString()
+            item.minusTime = (Number(this.toDayDiffMin) - Number(item.originTime)).toString()
+
+            if (this.point.length === 4) {
+              this.point = '.'
+            } else {
+              this.point += '.'
+            }
+
+            item.endDate = '업무 중 ' + this.point
+
+            break
+          }
         }
-
-        const toDayDiffTime = (now - new Date(this.workingData.workingInfos[this.workingData.workingInfos.length - 1].startDate)) / 1000
-        this.toDayDiffMin = Math.floor(toDayDiffTime / 60) - lunchTime
-        const toDayDiffSec = Math.floor(toDayDiffTime % 60)
-
-        this.workingData.workingInfos[this.workingData.workingInfos.length - 1].diffTime = this.toDayDiffMin.toString() + '.' + toDayDiffSec.toString()
-        this.workingData.workingInfos[this.workingData.workingInfos.length - 1].minusTime = (Number(this.toDayDiffMin) - Number(this.workingData.workingInfos[this.workingData.workingInfos.length - 1].originTime)).toString()
-
-        if (this.point.length === 4) {
-          this.point = '.'
-        } else {
-          this.point += '.'
-        }
-
-        this.workingData.workingInfos[this.workingData.workingInfos.length - 1].endDate = '업무 중 ' + this.point
       }
     }
   },
