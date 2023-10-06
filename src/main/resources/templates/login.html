@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <title>급여차감 방지기</title>
-
     <link rel="stylesheet" href="../static/css/styles.css" />
 </head>
 <body>
 <div class="container">
     <div class="top-banner">
         <div class="top-banner__text">
-            <img src="../static/images/ic-info.svg" alt="info" />
+            <img src="./images/ic-info.svg" alt="info" />
             참고용으로 사용하시기 바랍니다.<br />
             09:00 ~ 10:30 그룹웨어 서버 부하로 지연될 수 있으니 해당 시간 외에
             사용해주세요.
@@ -21,7 +20,7 @@
     </div>
     <main>
         <div class="main__image">
-            <img src="../static/images/bg-sign.png" alt="login" />
+            <img src="./images/bg-sign.png" alt="login" />
         </div>
         <div class="main__form">
             <form class="main__sign-form">
@@ -50,7 +49,7 @@
 </div>
 
 <!-- 땡! -->
-<div class="modal-container">
+<div class="modal-container open">
     <div class="modal-dim"></div>
     <div class="modal-body">
         <div class="modal-contents">
@@ -61,11 +60,4 @@
 </div>
 
 </body>
-<script th:inline="javascript">
-    const login = function () {
-        document.getElementById("loginBtn").setAttribute("disabled", "true");
-        document.getElementById("loginBtnSpinner").setAttribute("style", "display: inline-block");
-        document.getElementById("loginForm").submit();
-    }
-</script>
 </html>

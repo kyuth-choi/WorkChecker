@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
-@Controller
+//@Controller
 @RequiredArgsConstructor
 public class FrontController {
 

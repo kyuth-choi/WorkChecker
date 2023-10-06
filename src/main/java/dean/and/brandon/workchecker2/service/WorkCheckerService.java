@@ -35,17 +35,17 @@ public class WorkCheckerService {
             if (!sessionId.equals("")) {
                 String returnData = setLogin(sessionId, username, password);
                 if (!"success".equals(returnData)) {
-                    throw new Exception("[ERROR] 로그인 실패 : " + returnData);
+                    throw new Exception(returnData);
                 }
             } else {
-                throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 서버 오류");
+                throw new Exception("그룹웨어 서버 오류");
             }
         } catch (ResourceAccessException e) {
             log.error("그룹웨어 서버 오류", e);
             if (e.getRootCause() instanceof SocketTimeoutException) {
-                throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 응답 지연 \n(08:30~ 10:30 트래픽 과다로 응답지연 가능성 높습니다.)");
+                throw new Exception("그룹웨어 응답 지연 <br/>(08:30~ 10:30 트래픽 과다로 응답지연있습니다.)");
             }
-            throw new Exception("[ERROR] 로그인 실패 : 그룹웨어 서버 오류");
+            throw new Exception("그룹웨어 서버 오류");
         }
 
         return sessionId;
@@ -55,7 +55,6 @@ public class WorkCheckerService {
 
         try {
             String returnData = getWorkTime(sessionId, username, workingMonth);
-
             JsonObject convertedObject = new Gson().fromJson(returnData, JsonObject.class);
 
             JsonArray dataArray = convertedObject.getAsJsonArray("data");
@@ -127,7 +126,7 @@ public class WorkCheckerService {
                     long originTime = 480;
                     String note = "";
                     if (annualMap.containsKey(carDate)) {
-                        if (annualMap.get(carDate).contains("반차")) {
+                        if (annualMap.get(carDate).contains("반차") || annualMap.get(carDate).contains("건강검진")) {
                             originTime -= 240L;
                         }
                         if (annualMap.get(carDate).contains("2시간사용")) {
@@ -182,7 +181,6 @@ public class WorkCheckerService {
             }
 
             //날짜순 sorting
-
             workingInfos.sort(Comparator.comparing(WorkingInfo::getCarDate));
             return workingInfos;
         } catch (ResourceAccessException e) {
@@ -197,7 +195,7 @@ public class WorkCheckerService {
     public String getJSessionId(String username) {
         String sessionId = "";
         String endpointUrl = "http://gwintra.lunasoft.co.kr/loginForm.do";
-        if (username.toUpperCase().startsWith("G")) {
+        if (username.toUpperCase().startsWith("G") || username.toLowerCase().contains("cellook.kr")) {
             endpointUrl = "http://gwintra.cellook.kr/loginForm.do";
         }
 
@@ -224,7 +222,7 @@ public class WorkCheckerService {
         String paramData = "j_password=" + password + "&j_gwIdCheck=&j_username=" + username + "&password=" + password;
         // http 통신 요청 후 응답 받은 데이터를 담기 위한 변수
         String endpointUrl = "http://gwintra.lunasoft.co.kr/login.do";
-        if (username.toUpperCase().startsWith("G")) {
+        if (username.toUpperCase().startsWith("G") || username.toLowerCase().contains("cellook.kr")) {  //그룹웨어 계정이 메일인 경우가 있음.
             endpointUrl = "http://gwintra.cellook.kr/login.do";
         }
 
@@ -248,7 +246,7 @@ public class WorkCheckerService {
         // return data
         // 조회 할 월
         String endpointUrl = "http://gwintra.lunasoft.co.kr/ehr/attend/userAttendCalendar.do?sDate=" + workingMonth;
-        if (username.toUpperCase().startsWith("G")) {
+        if (username.toUpperCase().startsWith("G") || username.toLowerCase().contains("cellook.kr")) {
             endpointUrl = "http://gwintra.cellook.kr/ehr/attend/userAttendCalendar.do?sDate=" + workingMonth;
         }
 
